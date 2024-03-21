@@ -1,40 +1,52 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcryptjs';
 import { Model } from 'mongoose';
-import { User } from './schemas/user.schema';
-import { SignUpDto } from './dto/signup.dto';
+import { User } from '../user/schemas/user.schema';
+import { SignUpDto, Tokens } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
+import { UserService } from '../user/user.service';
+import { CreateUserDto } from '../user/dto/create-user.dto';
+import { ConfigService } from '@nestjs/config';
 
 @Injectable()
 export class AuthService {
   constructor(
-    @InjectModel(User.name)
-    private userModel: Model<User>,
+    private userService: UserService,
     private jwtService: JwtService,
+    private configService: ConfigService,
   ) {}
 
-  async signUp(signupDto: SignUpDto): Promise<{ token: string }> {
-    const { name, email, password } = signupDto;
+  async signUp(createUserDto: CreateUserDto): Promise<Tokens> {
+    const { email, password } = createUserDto;
+
+    const userByEmail = await this.userService.findByEmail(email);
+
+    if (userByEmail) {
+      throw new BadRequestException('Email already exist!');
+    }
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await this.userModel.create({
-      name,
-      email,
+    const user = await this.userService.create({
+      ...createUserDto,
       password: hashedPassword,
     });
 
-    const token = this.jwtService.sign({ id: user._id });
+    const tokens = this.getTokens(user._id);
 
-    return { token };
+    return tokens;
   }
 
-  async login(loginDto: LoginDto): Promise<{ token: string }> {
+  async login(loginDto: LoginDto): Promise<Tokens> {
     const { email, password } = loginDto;
 
-    const user = await this.userModel.findOne({ email });
+    const user = await this.userService.findByEmail(email);
 
     if (!user) {
       throw new UnauthorizedException('Invalid email or password');
@@ -46,8 +58,32 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const token = this.jwtService.sign({ id: user._id });
+    const tokens = this.getTokens(user._id);
 
-    return { token };
+    return tokens;
+  }
+
+  async getTokens(userId: string): Promise<Tokens> {
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(
+        { userId },
+        {
+          secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
+          expiresIn: this.configService.get<string>('JWT_ACCESS_EXPIRES'),
+        },
+      ),
+      this.jwtService.signAsync(
+        { userId },
+        {
+          secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+          expiresIn: this.configService.get<string>('JWT_REFRESH_EXPIRES'),
+        },
+      ),
+    ]);
+
+    return {
+      accessToken,
+      refreshToken,
+    };
   }
 }
