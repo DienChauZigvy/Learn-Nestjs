@@ -1,14 +1,12 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
-import { InjectModel } from '@nestjs/mongoose';
 import * as bcrypt from 'bcryptjs';
-import { Model } from 'mongoose';
-import { User } from '../user/schemas/user.schema';
-import { SignUpDto, Tokens } from './dto/signup.dto';
+import { Tokens } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import { UserService } from '../user/user.service';
 import { CreateUserDto } from '../user/dto/create-user.dto';
@@ -22,7 +20,7 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  async signUp(createUserDto: CreateUserDto): Promise<Tokens> {
+  async signUp(createUserDto: CreateUserDto): Promise<{ message: string }> {
     const { email, password } = createUserDto;
 
     const userByEmail = await this.userService.findByEmail(email);
@@ -33,14 +31,14 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    const user = await this.userService.create({
+    await this.userService.create({
       ...createUserDto,
       password: hashedPassword,
     });
 
-    const tokens = this.getTokens(user._id);
-
-    return tokens;
+    return {
+      message: 'User has been created!',
+    };
   }
 
   async login(loginDto: LoginDto): Promise<Tokens> {
@@ -58,9 +56,42 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const tokens = this.getTokens(user._id);
+    const tokens = await this.getTokens(user._id);
+    await this.updateRefreshToken(user._id, tokens.refreshToken);
 
     return tokens;
+  }
+
+  async logout(userId: string) {
+    return this.userService.update(userId, { refreshToken: null });
+  }
+
+  async refreshTokens(userId: string, refreshToken: string) {
+    const user = await this.userService.findById(userId);
+    if (!user || !user.refreshToken) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    const verifyRefreshToken = await this.jwtService.verify(refreshToken, {
+      secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
+    });
+
+    console.log({ verifyRefreshToken });
+
+    if (!verifyRefreshToken) {
+      throw new ForbiddenException('Access denied');
+    }
+
+    const tokens = await this.getTokens(user.id);
+    await this.updateRefreshToken(user.id, tokens.refreshToken);
+
+    return tokens;
+  }
+
+  async updateRefreshToken(userId: string, refreshToken: string) {
+    await this.userService.update(userId, {
+      refreshToken,
+    });
   }
 
   async getTokens(userId: string): Promise<Tokens> {

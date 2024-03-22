@@ -6,7 +6,7 @@ import { UserSchema } from '../user/schemas/user.schema';
 import { PassportModule } from '@nestjs/passport';
 import { JwtModule } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
-import { JWTStrategy } from './jwt.strategy';
+// import { JWTStrategy } from './jwt.strategy';
 import { AccessTokenStrategy } from './strategies/accessToken.strategy';
 import { RefreshTokenStrategy } from './strategies/refreshToken.strategy';
 import { UserModule } from '../user/user.module';
@@ -31,10 +31,13 @@ import { UserModule } from '../user/user.module';
   controllers: [AuthController],
   providers: [
     AuthService,
-    JWTStrategy,
+    // JWTStrategy,
     AccessTokenStrategy,
     RefreshTokenStrategy,
   ],
-  exports: [JWTStrategy, PassportModule],
+  exports: [
+    // JWTStrategy,
+    PassportModule,
+  ],
 })
 export class AuthModule {}
