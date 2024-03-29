@@ -20,7 +20,9 @@ export class AuthService {
     private configService: ConfigService,
   ) {}
 
-  async signUp(createUserDto: CreateUserDto): Promise<{ message: string }> {
+  async signUp(
+    createUserDto: CreateUserDto,
+  ): Promise<{ message: string; id: string }> {
     const { email, password } = createUserDto;
 
     const userByEmail = await this.userService.findByEmail(email);
@@ -31,13 +33,14 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    await this.userService.create({
+    const user = await this.userService.create({
       ...createUserDto,
       password: hashedPassword,
     });
 
     return {
       message: 'User has been created!',
+      id: user._id,
     };
   }
 
@@ -63,7 +66,11 @@ export class AuthService {
   }
 
   async logout(userId: string) {
-    return this.userService.update(userId, { refreshToken: null });
+    await this.userService.update(userId, { refreshToken: null });
+
+    return {
+      message: 'Logout sucessfully!',
+    };
   }
 
   async refreshTokens(userId: string, refreshToken: string) {
@@ -76,7 +83,7 @@ export class AuthService {
       secret: this.configService.get<string>('JWT_REFRESH_SECRET'),
     });
 
-    console.log({ verifyRefreshToken });
+    // console.log({ verifyRefreshToken });
 
     if (!verifyRefreshToken) {
       throw new ForbiddenException('Access denied');

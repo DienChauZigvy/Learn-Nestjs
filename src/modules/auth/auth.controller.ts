@@ -4,8 +4,8 @@ import { Tokens } from './dto/signup.dto';
 import { LoginDto } from './dto/login.dto';
 import { CreateUserDto } from '../user/dto/create-user.dto';
 import { Request } from 'express';
-import { AccessTokenGuard } from '../common/guard/accessToken.guard';
-import { RefreshTokenGuard } from '../common/guard/refreshToken.guard';
+import { AccessTokenGuard } from '../../common/guard/accessToken.guard';
+import { RefreshTokenGuard } from '../../common/guard/refreshToken.guard';
 
 @Controller('auth')
 export class AuthController {
@@ -22,16 +22,16 @@ export class AuthController {
   }
 
   @UseGuards(AccessTokenGuard)
-  @Get('logout')
+  @Post('logout')
   logout(@Req() req: Request) {
     // console.log(req.user);
-    this.authService.logout(req.user['userId']);
+    return this.authService.logout(req.user['userId']);
   }
 
   @UseGuards(RefreshTokenGuard)
-  @Get('refresh')
+  @Post('refresh')
   refreshTokens(@Req() req: Request) {
-    console.log(req.user);
+    // console.log('111controller', req.user);
     const userId = req.user['userId'];
     const refreshToken = req.user['refreshToken'];
     return this.authService.refreshTokens(userId, refreshToken);
