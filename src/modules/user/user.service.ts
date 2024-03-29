@@ -18,14 +18,18 @@ export class UserService {
   constructor(@InjectModel(User.name) private userModel: Model<User>) {}
 
   async getCurrentUser(currentUserId: string) {
-    const user: User = await this.userModel.findById(currentUserId).exec();
+    const user: User = await this.userModel
+      .findById({ _id: currentUserId }, { password: 0 })
+      .exec();
+
+    // console.log(11, user);
     if (!user) {
       throw new NotFoundException('User does not found');
     }
 
-    const { password, ...newUser } = user.toJSON();
+    // const { password, ...newUser } = user.toJSON();
 
-    return newUser;
+    return user;
   }
 
   async create(createUserDto: CreateUserDto): Promise<User> {
@@ -61,7 +65,9 @@ export class UserService {
         'You are not authorized to update this user',
       );
     }
-    const user = await this.userModel.findById(currentUserId).exec();
+    const user = await this.userModel
+      .findById({ _id: currentUserId }, { password: 0 })
+      .exec();
     if (!user) {
       throw new NotFoundException('User not found');
     }
