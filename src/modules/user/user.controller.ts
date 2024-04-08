@@ -25,10 +25,14 @@ import { UserService } from './user.service';
 export class UserController {
   constructor(private readonly userService: UserService) {}
 
+  @Get()
+  async getAll() {
+    return this.userService.getAllUsers();
+  }
+
   @Get('/current-user')
   @UseGuards(AccessTokenGuard)
   // @UseInterceptors(MongooseClassSerializerInterceptor(User))
-  // @UseInterceptors(ClassSerializerInterceptor)
   async getCurrentUser(@CurrentUserId() currentUserId: string) {
     const user = await this.userService.getCurrentUser(currentUserId);
     if (!user)

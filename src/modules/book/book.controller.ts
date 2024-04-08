@@ -22,7 +22,7 @@ export class BookController {
   constructor(private bookService: BookService) {}
 
   @Get()
-  async getAllBooks(@Query() query: ExpressQuery): Promise<Book[]> {
+  async getAllBooks(@Query() query: ExpressQuery) {
     return this.bookService.getAllBooks(query);
   }
 

@@ -16,8 +16,10 @@ export class BookService {
     private bookModel: mongoose.Model<Book>,
   ) {}
 
-  async getAllBooks(query: Query): Promise<Book[]> {
+  async getAllBooks(query: Query) {
     const resPerpage = 2;
+    const count = await this.bookModel.countDocuments({}).exec();
+    const totalPage = Math.floor((count - 1) / resPerpage) + 1;
     const currentPage = Number(query.page) || 1;
     const skip = resPerpage * (currentPage - 1);
     const keyword = query.keyword
@@ -32,7 +34,7 @@ export class BookService {
       .find({ ...keyword })
       .limit(resPerpage)
       .skip(skip);
-    return books;
+    return { books, totalPage, currentPage };
   }
 
   async create(book: Book, user: User): Promise<Book> {
