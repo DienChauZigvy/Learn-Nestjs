@@ -1,10 +1,13 @@
 import {
+  IsBoolean,
   IsEmail,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
   MinLength,
 } from 'class-validator';
+import { Status } from '../schemas/user.schema';
 
 export class CreateUserDto {
   @IsNotEmpty()
@@ -22,5 +25,17 @@ export class CreateUserDto {
 
   @IsOptional()
   @IsString()
-  refreshToken: string;
+  readonly refreshToken: string;
+
+  @IsOptional()
+  @IsBoolean()
+  readonly isAdmin: boolean;
+
+  @IsOptional()
+  @IsString()
+  readonly clientId?: string;
+
+  @IsOptional()
+  @IsEnum(Status, { message: 'Please use correct status' })
+  readonly status: Status;
 }

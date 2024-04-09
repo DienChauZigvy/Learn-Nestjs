@@ -13,6 +13,7 @@ import { User } from './schemas/user.schema';
 import { get, omit } from 'lodash';
 import { plainToClass } from 'class-transformer';
 import { UserRepository } from './user.repository';
+import { Chat } from '../chat/schemas/chat.schema';
 
 @Injectable()
 export class UserService {
@@ -99,5 +100,16 @@ export class UserService {
 
   async findById(id: string) {
     return this.userRepository.findById(id);
+  }
+
+  async addNewChat(userId: string, chat: Chat): Promise<void> {
+    return this.userRepository.addNewChat(userId, chat);
+  }
+
+  async findByIdAndUpdate(userId: string, user: User) {
+    return this.userModel.findByIdAndUpdate(userId, user, {
+      new: true,
+      projection: { password: 0 },
+    });
   }
 }

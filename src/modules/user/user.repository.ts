@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { User } from './schemas/user.schema';
 import { Model } from 'mongoose';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { Chat } from '../chat/schemas/chat.schema';
 
 @Injectable()
 export class UserRepository {
@@ -34,5 +35,14 @@ export class UserRepository {
     return this.userModel
       .findByIdAndDelete({ _id: id }, { password: 0 })
       .exec();
+  }
+
+  async addNewChat(userId: string, chat: Chat): Promise<void> {
+    const user = await this.findById(userId);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    user.chats.push(chat);
+    await user.save();
   }
 }

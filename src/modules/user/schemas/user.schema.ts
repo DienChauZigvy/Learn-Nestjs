@@ -1,6 +1,13 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import mongoose, { Document } from 'mongoose';
+import { Chat } from 'src/modules/chat/schemas/chat.schema';
 import { Message } from 'src/modules/message/schemas/message.schema';
+
+export enum Status {
+  ONLINE = 'Online',
+  OFFLINE = 'Offline',
+  BUSY = 'Busy',
+}
 
 @Schema({ timestamps: true })
 export class User extends Document {
@@ -25,11 +32,17 @@ export class User extends Document {
   @Prop({ default: false })
   isAdmin: boolean;
 
-  @Prop({ default: false })
-  isOnline: boolean;
+  @Prop()
+  clientId?: string;
+
+  @Prop({ default: Status.OFFLINE })
+  status: Status;
 
   @Prop([{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }])
-  messages: Message[];
+  chats?: Chat[];
+
+  @Prop([{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }])
+  messages?: Message[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

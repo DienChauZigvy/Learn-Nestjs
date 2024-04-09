@@ -8,11 +8,11 @@ export class Message extends Document {
   @Prop()
   content: string;
 
-  @Prop()
-  senderId: string;
+  // @Prop()
+  // senderId: string;
 
-  @Prop({ default: false })
-  isWatched: boolean;
+  // @Prop({ default: false })
+  // isWatched: boolean;
 
   @Prop({ type: mongoose.Schema.Types.ObjectId, ref: 'User' })
   user: User;
