@@ -102,9 +102,9 @@ export class UserService {
     return this.userRepository.findById(id);
   }
 
-  async addNewChat(userId: string, chat: Chat): Promise<void> {
-    return this.userRepository.addNewChat(userId, chat);
-  }
+  // async addNewChat(userId: string, chat: Chat): Promise<void> {
+  //   return this.userRepository.addNewChat(userId, chat);
+  // }
 
   async findByIdAndUpdate(userId: string, user: User) {
     return this.userModel.findByIdAndUpdate(userId, user, {

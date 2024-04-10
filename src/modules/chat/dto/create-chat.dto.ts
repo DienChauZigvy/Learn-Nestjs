@@ -13,10 +13,14 @@ export class CreateChatDto {
   @IsString()
   readonly chatName: string;
 
-  @IsOptional()
-  @IsBoolean()
-  readonly isGroupChat?: boolean;
+  // @IsEmpty({ message: 'You cannot pass the user id' })
+  // readonly users: User[];
 
-  @IsEmpty({ message: 'You cannot pass the user id' })
-  readonly users: User[];
+  // @IsNotEmpty()
+  // @IsString()
+  // readonly host: User;
+
+  // @IsOptional()
+  // @IsBoolean()
+  // readonly isGroupChat?: boolean;
 }

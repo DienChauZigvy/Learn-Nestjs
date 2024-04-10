@@ -29,20 +29,20 @@ export class User extends Document {
   @Prop()
   refreshToken: string;
 
-  @Prop({ default: false })
-  isAdmin: boolean;
+  // @Prop({ default: false })
+  // isAdmin: boolean;
 
   @Prop()
-  clientId?: string;
+  socketId?: string;
 
   @Prop({ default: Status.OFFLINE })
   status: Status;
 
-  @Prop([{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }])
-  chats?: Chat[];
+  // @Prop([{ type: mongoose.Schema.Types.ObjectId, ref: 'Chat' }])
+  // chats?: Chat[];
 
-  @Prop([{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }])
-  messages?: Message[];
+  // @Prop([{ type: mongoose.Schema.Types.ObjectId, ref: 'Message' }])
+  // messages?: Message[];
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);

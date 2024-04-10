@@ -133,7 +133,7 @@ export class AuthService {
         secret: this.configService.get<string>('JWT_ACCESS_SECRET'),
       });
 
-      console.log(444, payload);
+      // console.log(444, payload);
 
       return payload['userId'];
     } catch (error) {

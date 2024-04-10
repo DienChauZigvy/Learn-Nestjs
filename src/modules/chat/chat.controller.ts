@@ -1,4 +1,4 @@
-import { Body, Controller, Post, UseGuards } from '@nestjs/common';
+import { Body, Controller, Get, Post, UseGuards } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { AccessTokenGuard } from 'src/common/guard/accessToken.guard';
 import { CurrentUserId } from '../user/decorators/currentUser.decorator';
@@ -15,6 +15,13 @@ export class ChatController {
     @Body() createChat: CreateChatDto,
   ) {
     // console.log(22, createChat);
-    return this.chatService.create(createChat, currentUserId);
+    return this.chatService.addNewChat(currentUserId, createChat);
+  }
+
+  @Get()
+  @UseGuards(AccessTokenGuard)
+  async getChatRoomByUserID(@CurrentUserId() currentUserId: string) {
+    // console.log(22, createChat);
+    return this.chatService.getChatRoomByUserID(currentUserId);
   }
 }

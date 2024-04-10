@@ -37,12 +37,12 @@ export class UserRepository {
       .exec();
   }
 
-  async addNewChat(userId: string, chat: Chat): Promise<void> {
-    const user = await this.findById(userId);
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
-    user.chats.push(chat);
-    await user.save();
-  }
+  // async addNewChat(userId: string, chat: Chat): Promise<void> {
+  //   const user = await this.findById(userId);
+  //   if (!user) {
+  //     throw new NotFoundException('User not found');
+  //   }
+  //   user.chats.push(chat);
+  //   await user.save();
+  // }
 }

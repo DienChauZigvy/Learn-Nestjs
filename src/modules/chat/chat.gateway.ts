@@ -15,6 +15,11 @@ import { ChatService } from './chat.service';
 import { MessageService } from '../message/message.service';
 import { UserService } from '../user/user.service';
 import { CreateMessageDto } from '../message/dto/create-message.dto';
+import {
+  ClientToServerEvents,
+  ServerToClientEvents,
+} from 'src/types/chat.interface';
+import { CreateChatDto } from './dto/create-chat.dto';
 
 @WebSocketGateway({
   cors: {
@@ -29,7 +34,7 @@ export class ChatGateway
     OnModuleInit
 {
   @WebSocketServer()
-  server: Server;
+  server: Server = new Server<ServerToClientEvents, ClientToServerEvents>();
 
   constructor(
     private readonly authService: AuthService,
@@ -42,14 +47,12 @@ export class ChatGateway
 
   async handleConnection(@ConnectedSocket() socket: Socket) {
     const authHeader = socket.handshake.headers.authorization;
-    // console.log(authHeader);
 
     if (authHeader) {
       try {
         const token = authHeader.split(' ')[1];
-        // console.log(111, token);
         const userId = await this.authService.handleVerifyToken(token);
-        console.log(333, userId);
+        console.log('userId:', userId);
         socket.data.userId = userId;
       } catch (error) {
         socket.disconnect();
@@ -65,7 +68,7 @@ export class ChatGateway
 
   onModuleInit() {
     this.server.on('connection', (socket) => {
-      console.log('id:', socket.id);
+      console.log('socketid:', socket.id);
       console.log('connected chat room');
     });
   }
@@ -75,34 +78,45 @@ export class ChatGateway
     @MessageBody() createMessageDto: CreateMessageDto,
     @ConnectedSocket() client: Socket,
   ) {
-    const { chatId, ...content } = createMessageDto;
+    const { chatName, ...content } = createMessageDto;
     const message = await this.messageService.create(
       content,
       client.data?.userId,
-      chatId,
+      chatName,
     );
 
-    this.server.emit('message', createMessageDto);
+    // this.server
+    //   .to(createMessageDto.chatName)
+    //   .emit('onMessage', createMessageDto);
+
+    this.server.emit('onMessage', message);
     return message;
   }
 
   @SubscribeMessage('join')
   async enterChatRoom(
     @ConnectedSocket() client: Socket,
-    @MessageBody() roomId: string,
+    @MessageBody() messageBody: CreateChatDto,
   ) {
+    const { chatName } = messageBody;
     let user = await this.userService.findById(client.data?.userId);
-    user.clientId = client.id;
+    user.socketId = client.id;
 
     user = await this.userService.findByIdAndUpdate(user._id, user);
 
-    client.join(roomId);
+    if (user.socketId) {
+      this.server.in(user.socketId).socketsJoin(chatName);
 
-    client.broadcast
-      .to(roomId)
-      .emit('users-changed', { user: user._id, event: 'joined' });
+      await this.chatService.addUserToChatRoom(messageBody, user._id);
+    }
 
-    return 'join';
+    // client.join(roomId);
+
+    // client.broadcast
+    //   .to(roomId)
+    //   .emit('users-changed', { user: user._id, event: 'joined' });
+
+    // return 'join';
   }
 }
 

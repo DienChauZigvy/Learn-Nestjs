@@ -1,6 +1,4 @@
-import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
-import { Chat } from 'src/modules/chat/schemas/chat.schema';
-import { User } from 'src/modules/user/schemas/user.schema';
+import { IsNotEmpty, IsString } from 'class-validator';
 
 export class CreateMessageDto {
   @IsNotEmpty()
@@ -9,7 +7,7 @@ export class CreateMessageDto {
 
   @IsNotEmpty()
   @IsString()
-  readonly chatId: string;
+  readonly chatName: string;
 
   // @IsOptional()
   // @IsBoolean()
